@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Memória Mortal — Jogo da Memória do Coringa</title>
+
+  <!-- Fontes de quadrinhos (precisa de internet; sem ela o navegador usa Impact / Courier New) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Special+Elite&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Fundo: chuva, meio-tom (halftone) e vinheta -->
+  <div class="fundo" aria-hidden="true"></div>
+
+  <main class="app">
+
+    <!-- ============ TELA INICIAL ============ -->
+    <section id="tela-inicio" class="tela ativa" aria-labelledby="titulo-jogo">
+      <header class="abertura">
+        <p class="chamada">Uma noite ruim em Gotham. Uma piada pior ainda.</p>
+        <h1 id="titulo-jogo" class="titulo">MEMÓRIA <span>MORTAL</span></h1>
+        <p class="subtitulo">O jogo da memória em que ninguém ri por último.</p>
+      </header>
+
+      <div class="quadros">
+        <article class="painel regras">
+          <h2>As regras da piada</h2>
+          <ol>
+            <li>Vire <strong>duas cartas</strong> por rodada.</li>
+            <li>Encontre os <strong>5 pares</strong> de personagens que combinam.</li>
+            <li>Acertos seguidos geram <strong>combo</strong> e mais pontos.</li>
+            <li>Cada erro custa pontos. Sobrar tempo vira <strong>bônus</strong>.</li>
+            <li>Acabou o tempo? O Coringa ri.</li>
+          </ol>
+        </article>
+
+        <article class="painel elenco">
+          <h2>Os pares da noite</h2>
+          <ul id="lista-pares"></ul>
+        </article>
+      </div>
+
+      <fieldset class="dificuldade">
+        <legend>Escolha a dificuldade</legend>
+
+        <label class="opcao">
+          <input type="radio" name="dificuldade" value="facil" />
+          <span class="opcao-corpo">
+            <strong>Fácil</strong>
+            <small>Espie as cartas 3,5 s<br />120 s para jogar</small>
+          </span>
+        </label>
+
+        <label class="opcao">
+          <input type="radio" name="dificuldade" value="medio" checked />
+          <span class="opcao-corpo">
+            <strong>Médio</strong>
+            <small>Espie as cartas 1,8 s<br />75 s para jogar</small>
+          </span>
+        </label>
+
+        <label class="opcao">
+          <input type="radio" name="dificuldade" value="dificil" />
+          <span class="opcao-corpo">
+            <strong>Difícil</strong>
+            <small>Sem espiar<br />50 s para jogar</small>
+          </span>
+        </label>
+      </fieldset>
+
+      <p class="recordes" id="recordes" aria-live="polite"></p>
+
+      <div class="acoes">
+        <button id="btn-jogar" class="botao" type="button">JOGAR</button>
+      </div>
+    </section>
+
+    <!-- ============ TELA DE GAMEPLAY ============ -->
+    <section id="tela-jogo" class="tela" aria-label="Partida">
+      <header class="hud" aria-live="off">
+        <div class="hud-item">
+          <span class="rotulo">Pontos</span>
+          <strong id="hud-pontos">0</strong>
+        </div>
+        <div class="hud-item" id="hud-tempo-caixa">
+          <span class="rotulo">Tempo</span>
+          <strong id="hud-tempo">0:00</strong>
+        </div>
+        <div class="hud-item">
+          <span class="rotulo">Tentativas</span>
+          <strong id="hud-tentativas">0</strong>
+        </div>
+        <div class="hud-item">
+          <span class="rotulo">Pares</span>
+          <strong id="hud-pares">0/5</strong>
+        </div>
+        <div class="hud-item" id="hud-combo-caixa">
+          <span class="rotulo">Combo</span>
+          <strong id="hud-combo">x0</strong>
+        </div>
+      </header>
+
+      <div id="tabuleiro" class="tabuleiro" role="group" aria-label="Cartas do jogo da memória"></div>
+
+      <p id="legenda" class="legenda" aria-live="polite">Memorize. Vire. Lembre.</p>
+
+      <footer class="controles">
+        <button id="btn-reiniciar" class="botao pequeno sec" type="button">Reiniciar</button>
+        <button id="btn-menu" class="botao pequeno sec" type="button">Menu</button>
+        <button id="btn-som" class="botao pequeno sec" type="button" aria-pressed="false">Som: ligado</button>
+      </footer>
+    </section>
+
+    <!-- ============ TELA DE FIM DE JOGO (modal) ============ -->
+    <div id="modal-fim" class="modal" hidden>
+      <div class="modal-caixa painel" role="dialog" aria-modal="true" aria-labelledby="fim-titulo">
+        <h2 id="fim-titulo" class="fim-titulo">FIM DE JOGO</h2>
+        <p id="fim-frase" class="fim-frase"></p>
+
+        <dl class="fim-stats">
+          <div><dt>Pontos</dt><dd id="fim-pontos">0</dd></div>
+          <div><dt>Tentativas</dt><dd id="fim-tentativas">0</dd></div>
+          <div><dt>Erros</dt><dd id="fim-erros">0</dd></div>
+          <div><dt>Tempo gasto</dt><dd id="fim-tempo">0:00</dd></div>
+          <div><dt>Maior combo</dt><dd id="fim-combo">x0</dd></div>
+          <div class="destaque"><dt>Recorde</dt><dd id="fim-recorde">—</dd></div>
+        </dl>
+
+        <p id="fim-novo-recorde" class="novo-recorde" hidden>NOVO RECORDE!</p>
+
+        <div class="acoes">
+          <button id="btn-novamente" class="botao" type="button">JOGAR NOVAMENTE</button>
+          <button id="btn-fim-menu" class="botao sec" type="button">Menu</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
